@@ -1,41 +1,24 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import { useMemo, useEffect, useState } from "react";
-
-// prop-types is a library for typechecking of props
+/* eslint-disable react/prop-types */
+import React, { useMemo, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-
-// react-table components
 import { useTable, usePagination, useGlobalFilter, useAsyncDebounce, useSortBy } from "react-table";
-
-// @mui material components
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableContainer from "@mui/material/TableContainer";
-import TableRow from "@mui/material/TableRow";
-import Icon from "@mui/material/Icon";
-import Autocomplete from "@mui/material/Autocomplete";
-
-// Material Dashboard 2 React components
+import {
+  Table,
+  TableBody,
+  TableContainer,
+  TableRow,
+  Icon,
+  Autocomplete,
+  TableCell,
+} from "@mui/material";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDPagination from "components/MDPagination";
-
-// Material Dashboard 2 React example components
+import { IconButton, Menu, MenuItem } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import DataTableHeadCell from "examples/Tables/DataTable/DataTableHeadCell";
 import DataTableBodyCell from "examples/Tables/DataTable/DataTableBodyCell";
 
@@ -47,6 +30,8 @@ function DataTable({
   pagination,
   isSorted,
   noEndBorder,
+  rowActions, // New prop for row actions configuration
+  onRowClick, // New prop for handling row clicks
 }) {
   const defaultValue = entriesPerPage.defaultValue ? entriesPerPage.defaultValue : 10;
   const entries = entriesPerPage.entries
@@ -54,6 +39,7 @@ function DataTable({
     : ["5", "10", "15", "20", "25"];
   const columns = useMemo(() => table.columns, [table]);
   const data = useMemo(() => table.rows, [table]);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const tableInstance = useTable(
     { columns, data, initialState: { pageIndex: 0 } },
@@ -80,13 +66,10 @@ function DataTable({
     state: { pageIndex, pageSize, globalFilter },
   } = tableInstance;
 
-  // Set the default value for the entries per page when component mounts
   useEffect(() => setPageSize(defaultValue || 10), [defaultValue]);
 
-  // Set the entries per page value based on the select value
   const setEntriesPerPage = (value) => setPageSize(value);
 
-  // Render the paginations
   const renderPagination = pageOptions.map((option) => (
     <MDPagination
       item
@@ -98,25 +81,19 @@ function DataTable({
     </MDPagination>
   ));
 
-  // Handler for the input to set the pagination index
   const handleInputPagination = ({ target: { value } }) =>
     value > pageOptions.length || value < 0 ? gotoPage(0) : gotoPage(Number(value));
 
-  // Customized page options starting from 1
   const customizedPageOptions = pageOptions.map((option) => option + 1);
 
-  // Setting value for the pagination input
   const handleInputPaginationValue = ({ target: value }) => gotoPage(Number(value.value - 1));
 
-  // Search input value state
   const [search, setSearch] = useState(globalFilter);
 
-  // Search input state handle
   const onSearchChange = useAsyncDebounce((value) => {
     setGlobalFilter(value || undefined);
   }, 100);
 
-  // A function that sets the sorted value for the table
   const setSortedValue = (column) => {
     let sortedValue;
 
@@ -131,10 +108,8 @@ function DataTable({
     return sortedValue;
   };
 
-  // Setting the entries starting point
   const entriesStart = pageIndex === 0 ? pageIndex + 1 : pageIndex * pageSize + 1;
 
-  // Setting the entries ending point
   let entriesEnd;
 
   if (pageIndex === 0) {
@@ -144,6 +119,13 @@ function DataTable({
   } else {
     entriesEnd = pageSize * (pageIndex + 1);
   }
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.autoTable({ html: "#my-table" });
+    doc.save("table.pdf");
+    setAnchorEl(null);
+  };
 
   return (
     <TableContainer sx={{ boxShadow: "none" }}>
@@ -181,6 +163,15 @@ function DataTable({
               />
             </MDBox>
           )}
+          <IconButton
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            style={{ position: "absolute", top: 0, right: 0, margin: "8px" }}
+          >
+            <MoreVertIcon />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+            <MenuItem onClick={handleExportPDF}>Export to PDF</MenuItem>
+          </Menu>
         </MDBox>
       ) : null}
       <Table {...getTableProps()}>
@@ -205,17 +196,37 @@ function DataTable({
           {page.map((row, key) => {
             prepareRow(row);
             return (
-              <TableRow key={key} {...row.getRowProps()}>
+              <TableRow
+                key={key}
+                {...row.getRowProps()}
+                onClick={() => {
+                  // Call the onRowClick callback with the row data
+                  if (onRowClick) {
+                    onRowClick(row.original);
+                  }
+                }}
+                style={{ cursor: "pointer" }} // Add cursor pointer
+              >
                 {row.cells.map((cell, idx) => (
                   <DataTableBodyCell
                     key={idx}
                     noBorder={noEndBorder && rows.length - 1 === key}
                     align={cell.column.align ? cell.column.align : "left"}
                     {...cell.getCellProps()}
+                    style={{ hover: "pointer" }} // Add hover effect
                   >
                     {cell.render("Cell")}
                   </DataTableBodyCell>
                 ))}
+                {rowActions && (
+                  <TableCell>
+                    {rowActions.map((action, index) => (
+                      <IconButton key={index} onClick={(e) => action.onClick(row.original, e)}>
+                        {action.icon}
+                      </IconButton>
+                    ))}
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}
@@ -269,7 +280,6 @@ function DataTable({
   );
 }
 
-// Setting default values for the props of DataTable
 DataTable.defaultProps = {
   entriesPerPage: { defaultValue: 10, entries: [5, 10, 15, 20, 25] },
   canSearch: false,
@@ -277,9 +287,9 @@ DataTable.defaultProps = {
   pagination: { variant: "gradient", color: "info" },
   isSorted: true,
   noEndBorder: false,
+  rowActions: [], // Default empty array for row actions
 };
 
-// Typechecking props for the DataTable
 DataTable.propTypes = {
   entriesPerPage: PropTypes.oneOfType([
     PropTypes.shape({
@@ -306,6 +316,12 @@ DataTable.propTypes = {
   }),
   isSorted: PropTypes.bool,
   noEndBorder: PropTypes.bool,
+  rowActions: PropTypes.arrayOf(
+    PropTypes.shape({
+      icon: PropTypes.node.isRequired,
+      onClick: PropTypes.func.isRequired,
+    })
+  ), // Row actions configuration
 };
 
 export default DataTable;

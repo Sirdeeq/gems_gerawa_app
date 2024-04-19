@@ -1,9 +1,9 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* GEMS Global Services React - v2.2.0
 =========================================================
 
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
+* Product Page: https://www.gems.com/product/material-dashboard-react
 * Copyright 2023 Creative Tim (https://www.creative-tim.com)
 
 Coded by www.creative-tim.com
@@ -19,11 +19,11 @@ import PropTypes from "prop-types";
 // @mui material components
 import Grid from "@mui/material/Grid";
 
-// Material Dashboard 2 React components
+// GEMS Global Services React components
 import MDBox from "components/MDBox";
 // import MDTypography from "components/MDTypography";
 
-// Material Dashboard 2 React example components
+// GEMS Global Services React example components
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 
@@ -33,15 +33,15 @@ import Footer from "layouts/authentication/components/Footer";
 function CoverLayout({ coverHeight, image, children }) {
   return (
     <PageLayout>
-      <DefaultNavbar
+      {/* <DefaultNavbar
         action={{
           type: "external",
-          route: "https://creative-tim.com/product/material-dashboard-react",
-          label: "free download",
+          route: "https://gerawa_dashboard",
+          label: "Login GERAWA",
         }}
         transparent
         light
-      />
+      /> */}
       <MDBox
         width="calc(100% - 2rem)"
         minHeight={coverHeight}
@@ -49,13 +49,24 @@ function CoverLayout({ coverHeight, image, children }) {
         mx={2}
         my={2}
         pt={6}
-        pb={28}
+        pb={6}
+        //   sx={{
+        //     backgroundImage: ({ functions: { linearGradient, rgba }, palette: { gradients } }) =>
+        //       image &&
+        //       `${linearGradient(
+        //         rgba(gradients.dark.main, 0.4),
+        //         rgba(gradients.dark.state, 0.4)
+        //       )}, url(${image})`,
+        //     backgroundSize: "cover",
+        //     backgroundPosition: "center",
+        //     backgroundRepeat: "no-repeat",
+        //   }}
         sx={{
           backgroundImage: ({ functions: { linearGradient, rgba }, palette: { gradients } }) =>
             image &&
             `${linearGradient(
-              rgba(gradients.dark.main, 0.4),
-              rgba(gradients.dark.state, 0.4)
+              rgba(gradients.dark.main, 0.6),
+              rgba(gradients.dark.state, 0.6)
             )}, url(${image})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -69,7 +80,8 @@ function CoverLayout({ coverHeight, image, children }) {
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
+      <br />
+      {/* <Footer /> */}
     </PageLayout>
   );
 }
